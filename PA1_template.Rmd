@@ -8,18 +8,99 @@ output:
 
 ## Loading and preprocessing the data
 
+```{r loading}
+library(ggplot2)
+library(lubridate)
+suppressWarnings(suppressMessages(library(dplyr)))
+```
+
+```{r preprocessing}
+unzip("activity.zip")
+activity <- read.csv("activity.csv", stringsAsFactors=F)
+activity <- activity %>%
+                mutate(date = ymd(date)) %>%
+                mutate(interval = sprintf("%04d",interval)) %>%
+                mutate(interval = gsub("(\\d\\d)(\\d\\d)", "\\1:\\2", interval)) %>%
+                mutate(interval = as.factor(interval))
+```
 
 
 ## What is mean total number of steps taken per day?
 
+```{r meanTotal}
+byDate <- activity %>%
+                group_by(date) %>% 
+                summarize(totalSteps = sum(steps, na.rm=T))
+
+ggplot(data=byDate, aes(totalSteps)) +
+    geom_histogram(breaks = seq(0,25000,by=1000), 
+    fill="green", col="black") +
+    labs(title="Histogram of Steps per Day") +
+    labs(x="Steps per Day", y="Count")
+
+mean(byDate$totalSteps)
+median(byDate$totalSteps)
+```
 
 
 ## What is the average daily activity pattern?
 
+```{r averageDaily}
+byTime <- activity %>%
+                group_by(interval) %>%
+                summarize(meanSteps = mean(steps, na.rm=T))
+
+ggplot(data=byTime, aes(as.integer(interval), meanSteps)) +
+    geom_point(col="blue") +
+    geom_line(col="blue") +
+    labs(title="Average Steps in Each 5 Minute Interval") +
+    labs(x="Beginning of 5 Minute Interval", y="Mean Number of Steps") + 
+    scale_x_continuous(limits=c(1,289), breaks=seq(1,289,by=12*6), labels=c(as.character(byTime$interval)[seq(1,288,by=12*6)],"24:00"))
+
+arrange(byTime,desc(meanSteps))[1,]
+```
 
 
 ## Imputing missing values
 
+```{r missingValues}
+sum(!complete.cases(activity))
+
+activityNoNA <- activity %>%
+    group_by(interval) %>%
+    mutate(steps = ifelse(is.na(steps), mean(steps, na.rm=T), steps)) %>%
+    ungroup()
+
+byDateNoNA <- activityNoNA %>%
+    group_by(date) %>% 
+    summarize(totalSteps = sum(steps))
+
+ggplot(data=byDateNoNA, aes(totalSteps)) +
+    geom_histogram(breaks = seq(0,25000,by=1000), 
+                   fill="green", col="black") +
+    labs(title="Histogram of Steps per Day, No NAs") +
+    labs(x="Steps per Day", y="Count")
+
+mean(byDateNoNA$totalSteps)
+median(byDateNoNA$totalSteps)
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r weekday_weekend}
+activityWeekInfo <- activityNoNA %>%
+    mutate(dayType = as.factor(ifelse(!(weekdays(date) %in% c("Saturday","Sunday")),"weekday","weekend")))
+
+byTimeWeekInfo <- activityWeekInfo %>%
+    group_by(interval, dayType) %>%
+    summarize(meanSteps = mean(steps))
+
+ggplot(data=byTimeWeekInfo, aes(as.integer(interval), meanSteps)) +
+    geom_point(col="blue") +
+    geom_line(col="blue") +
+    facet_grid(dayType ~ .) +
+    labs(title="Average Steps in Each 5 Minute Interval") +
+    labs(x="Beginning of 5 Minute Interval", y="Mean Number of Steps") + 
+    scale_x_continuous(limits=c(1,289), breaks=seq(1,289,by=12*6), labels=c(as.character(byTime$interval)[seq(1,288,by=12*6)],"24:00"))
+```
