@@ -41,6 +41,7 @@ ggplot(data=byDate, aes(totalSteps)) +
 ```
 
 ![](PA1_template_files/figure-html/total-1.png) 
+
 There is a peak at 0 steps, due to the large number of NA rows. Data over the rest of the days is spread out, with results ranging from a couple thousand to over 20,000, with a peak around 10,000.
 
 Report the mean number of steps per day
@@ -81,6 +82,7 @@ ggplot(data=byTime, aes(as.integer(interval), meanSteps)) +
 ```
 
 ![](PA1_template_files/figure-html/averageDaily-1.png) 
+
 Report the 5 minute interval with the highest average number of steps.
 
 ```r
@@ -129,6 +131,7 @@ ggplot(data=byDateNoNA, aes(totalSteps)) +
 ```
 
 ![](PA1_template_files/figure-html/missingValues-1.png) 
+
 Now that the NAs have been removed, there is no longer a spike at 0. It has been replaced by a much larger spike above 10,000, which is where the days with NA values ended up.
 
 Report the new mean.
@@ -172,4 +175,5 @@ ggplot(data=byTimeWeekInfo, aes(as.integer(interval), meanSteps)) +
 ```
 
 ![](PA1_template_files/figure-html/weekday_weekend-1.png) 
+
 There are a few noticeably different patterns between weekdays and weekends. For example, this individual wakes up earlier on the weekdays (a little before 6:00am) than the weekends (generally closer to 8:00am). There is a larger spike on weekday mornings, likely corresponding to getting ready in the morning and/or traveling to work. The individual moves less on average during the mid-day on weekdays than weekends. This person is also more active in the late evening on weekends than weekdays.
